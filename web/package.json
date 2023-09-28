@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "nats": "^2.16.0"
+  },
+  "type": "module" 
+}
