@@ -2,22 +2,32 @@ package main
 
 import (
 	"nats-test/message"
-	"nats-test/model"
-
-	"github.com/nats-io/nats.go"
+	"time"
 )
+
+const max = 6
+const limit = 3
+
+var count = 0
 
 func main() {
 	nc := message.Nc
 	defer nc.Close()
 
-	ec, err := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
-	if err != nil {
+	for ; count < limit; count++ {
+		if err := message.PublishMessage(nc, "hello", "Transistor"); err != nil {
+			panic(err)
+		}
+	}
+
+	if err := message.PublishMessage(nc, "done", ""); err != nil {
 		panic(err)
 	}
-	defer ec.Close()
+	time.Sleep(2 * time.Second)
 
-	data := &model.Cat{Color: "black", Age: 6}
-
-	message.JsonEncoderMessage(ec, "hello", data)
+	for ; count < max; count++ {
+		if err := message.PublishMessage(nc, "hello", "Transistor"); err != nil {
+			panic(err)
+		}
+	}
 }

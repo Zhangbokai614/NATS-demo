@@ -77,6 +77,18 @@ func JsonEncoderAsyncSub(ec *nats.EncodedConn, subject string, payload model.Pay
 	return nil
 }
 
+func AsyncSubDrain(nc *nats.Conn, subject string) error {
+	if _, err := nc.Subscribe(subject, func(msg *nats.Msg) {
+		fmt.Println("work start", "is closed:", nc.IsClosed(), "is draining:", nc.IsDraining())
+		time.Sleep(2 * time.Second)
+		fmt.Println(string(msg.Data))
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func AsyncSubReply(nc *nats.Conn, wg *sync.WaitGroup, subject, reply string) error {
 	if _, err := nc.Subscribe(subject, func(msg *nats.Msg) {
 		fmt.Println("subMsg:", string(msg.Data))

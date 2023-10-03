@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"nats-test/message"
-	"nats-test/model"
+	"time"
 
 	"github.com/nats-io/nats.go"
 )
@@ -12,14 +12,20 @@ func main() {
 	nc := message.Nc
 	defer nc.Close()
 
-	ec, err := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
-	if err != nil {
+	if err := message.AsyncSubDrain(nc, "hello"); err != nil {
 		panic(err)
 	}
-	defer ec.Close()
 
-	payload := &model.Cat{}
-	message.JsonEncoderAsyncSub(ec, "hello", payload)
+	if _, err := nc.Subscribe("done", func(msg *nats.Msg) {
+		fmt.Println("start close")
+		nc.Close()
+		fmt.Println("conn close")
 
-	fmt.Println(payload)
+	}); err != nil {
+		panic(err)
+	}
+
+	time.Sleep(20 * time.Second)
+	fmt.Println("is closed:", nc.IsClosed())
+	fmt.Println("is draining:", nc.IsDraining())
 }
